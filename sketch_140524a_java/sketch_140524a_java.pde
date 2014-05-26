@@ -7,7 +7,12 @@ void setup() { //6 by 12 blocks (really 13)
   
   a = new Block[12][6];
   
-  a[0][0] = new Block(0,0,red);
+  for (int i=0; i<a.length; i++) {
+     for (int j=0; j<a[0].length; j++) {
+       addBlock(i,j,red);
+     }
+  }
+
 }
  
 void draw() { 
@@ -23,6 +28,9 @@ void draw() {
   
 }
 
+void addBlock(int row, int col, color c) {
+  a[row][col] = new Block(row,col,c);
+}
 
 class Block {
   private int x,y;
