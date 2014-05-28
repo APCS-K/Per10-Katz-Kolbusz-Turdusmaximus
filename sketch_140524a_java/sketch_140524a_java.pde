@@ -5,6 +5,7 @@ Cursor cursor;
 
 long timeOfLastMove;
 char lastMove;
+boolean moving;
 
 color red = color(245,20,20);
 color yellow = color(245,245,20);
@@ -21,7 +22,8 @@ void setup() { //6 by 12 blocks (really 13)
   frameRate(30);
   timeOfLastMove = 4;
   lastMove = 'n';
- 
+  moving = false;
+  
   cursor = new Cursor();
   blocks = new Block[12][6];
   
@@ -50,39 +52,60 @@ void draw() {
   
   if (keyPressed) {
     long currentTime = System.nanoTime();
-    println(currentTime);
-    println("\t"+(currentTime - timeOfLastMove));
-    if ((currentTime - timeOfLastMove > Integer.MAX_VALUE/20) || (key != lastMove)) {
+    //println(currentTime);
+    //println("\t"+(currentTime - timeOfLastMove));
+    if (((currentTime - timeOfLastMove > Integer.MAX_VALUE/20) && (!moving)) || (key != lastMove)) {
       /*
       basically doesn't allow a move in the same direction for a certain
       length of time unless the cursor has already moved in a different direction
+      
+      tweak this??
       */
-      timeOfLastMove = currentTime;
+      moving = true;
       lastMove = key;
       
+      
+      timeOfLastMove = currentTime;
       if (key == 'w') {
+        //timeOfLastMove = currentTime;
         cursor.moveUp();
       }
       if (key == 'a') {
+        //timeOfLastMove = currentTime;
         cursor.moveLeft();
       }
       if (key == 's') {
+        //timeOfLastMove = currentTime;
         cursor.moveDown();
       }
       if (key == 'd') {
+        //timeOfLastMove = currentTime;
         cursor.moveRight();
       }
-    }
+      if (key == ENTER) {
+        //timeOfLastMove = currentTime;
+        int row = cursor.getRow();
+        int col = cursor.getCol();
+        
+        color leftcolor = blocks[row][col].getColor();
+        color rightcolor = blocks[row][col+1].getColor();
+        blocks[row][col] = new Block(row,col,rightcolor);
+        blocks[row][col+1] = new Block(row,col+1,leftcolor);
+      }
+    
+    } 
   }
-
-  cursor.display(); //cursor is drawn on top of the blocks
   
+  cursor.display(); //cursor is drawn on top of the blocks
 }
 
 void addBlock(int row, int col, color c) {
   blocks[row][col] = new Block(row,col,c);
 }
 
+void keyReleased() {
+  moving = false;
+}
 //-------------------------------------------------------------------------------------------------
 
 class Block {
@@ -94,6 +117,8 @@ class Block {
     y = height-(40*(row+1));
     this.c = c;
   }
+  
+  public color getColor() {return c;}
   
   public void display() {
     fill(c);
@@ -109,6 +134,9 @@ class Cursor {
     row = 5;
     leftcol = 2;
   }
+  
+  public int getRow() {return row;}
+  public int getCol() {return leftcol;}
   
   public void display() {
     int x = 40*leftcol;
