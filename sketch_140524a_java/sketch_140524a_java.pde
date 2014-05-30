@@ -5,7 +5,14 @@ Cursor cursor;
 
 long timeOfLastMove;
 char lastMove;
+
 boolean moving;
+int movingi;
+int movingrow;
+int movingcol;
+
+Block leftblock;
+Block rightblock;
 
 color red = color(245,20,20);
 color yellow = color(245,245,20);
@@ -20,9 +27,16 @@ Random r = new Random();
 void setup() { //6 by 12 blocks (really 13)
   size(240,520);
   frameRate(30);
+  
   timeOfLastMove = 4;
   lastMove = 'n';
+  
   moving = false;
+  movingi = 0;
+  movingrow = -1;
+  movingcol = -1;
+  leftblock = null;
+  rightblock = null;
   
   cursor = new Cursor();
   blocks = new Block[12][6];
@@ -40,14 +54,42 @@ void setup() { //6 by 12 blocks (really 13)
  
 void draw() { 
   background(204);
+  //int j = 0;
   
   //displaying all the blocks in the array
-  for (Block[] row : blocks) {
-    for (Block b : row) {
-      if (b != null) {
+  for (int row = 0; row < blocks.length; row++) {
+    for (int col = 0; col < blocks[row].length; col++) {
+      //print("\t"+b.equals(leftblock));
+      Block b = blocks[row][col];
+      //print(" "+movingcol+" ");
+      if ( (b != null) && !( (row == movingrow) && ( (col == movingcol) || (col == movingcol+1) ) ) ){ //block exists, and is not the block defined as being in the row where a move is taking place in the two columns beng moved (aka the blocks switched)
+        //j++;
         b.display();
       }
     }
+  }
+  //print(" "+j);
+  
+  if (movingi > 0) { //moving animation
+    //by definition leftblock and rightblock have to be non-null but just in case
+    if ((leftblock != null) && (rightblock != null)) {
+      //println(movingi);
+      leftblock.setX(40*movingcol + ((8-movingi)*5)); //40*movingcol = original x position, moves 5 pixels to the right
+      rightblock.setX(40*movingcol + (movingi*5)); //40*movingcol = ending x position, moves 5 pixels to the left
+      movingi--;
+      
+      //for some reason we need to make these two special snowflakes display separately even if we put the display block after this
+      leftblock.display();
+      rightblock.display();
+    }
+  }
+       
+  if (movingi == 0) {
+    leftblock = null;
+    rightblock = null;
+    //don't want the third if clause in the display block to trigger
+    movingrow = -1;
+    movingcol = -1;
   }
   
   if (keyPressed) {
@@ -84,17 +126,31 @@ void draw() {
       }
       if (key == ENTER) {
         //timeOfLastMove = currentTime;
-        int row = cursor.getRow();
-        int col = cursor.getCol();
+        movingi = 7; //HEY WE'RE MOVING NOW
+        movingrow = cursor.getRow();
+        movingcol = cursor.getCol();
         
-        color leftcolor = blocks[row][col].getColor();
-        color rightcolor = blocks[row][col+1].getColor();
-        blocks[row][col] = new Block(row,col,rightcolor);
-        blocks[row][col+1] = new Block(row,col+1,leftcolor);
-      }
+        
+        leftblock = blocks[movingrow][movingcol];
+        rightblock = blocks[movingrow][movingcol+1];
+        
+        //leftblock.moving(true);
+        //rightblock.moving(true);
+        
+        color leftcolor = leftblock.getColor();
+        color rightcolor = rightblock.getColor();
+        blocks[movingrow][movingcol] = new Block(movingrow,movingcol,rightcolor);
+        blocks[movingrow][movingcol+1] = new Block(movingrow,movingcol+1,leftcolor);
+        
+        /* first we switch the blocks in the array, then we do the animation
+        this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */
+        
+     }
     
-    } 
-  }
+    }
+   
+   
+}
   
   cursor.display(); //cursor is drawn on top of the blocks
 }
@@ -119,6 +175,11 @@ class Block {
   }
   
   public color getColor() {return c;}
+  
+  public int getX() {return x;}
+  public void setX(int i) {x = i;
+    //print("\t"+x+","+c);
+  }
   
   public void display() {
     fill(c);
