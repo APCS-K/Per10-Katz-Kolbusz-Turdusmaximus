@@ -128,7 +128,7 @@ void draw() {
     for (int col = 0; col < blocks[row].length; col++) {
       Block blockInQuestion = blocks[row][col];
       Block blockBelow = blocks[row-1][col];
-      if ((blockBelow == null) && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below (NOT NECESSARILY IMMEDIATELY BELOW), block exists and has not already been assigned true/end variables
+      if ((blockBelow == null) && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
         int endingRow = row-1;
         blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
