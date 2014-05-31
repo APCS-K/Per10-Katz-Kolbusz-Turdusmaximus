@@ -42,7 +42,7 @@ void setup() {
   blocks = new Block[13][6];//6 by 12 blocks (really 13)
   
   // ------------------------------------------------------------------------------creating randomly colored blocks for testing purposes
-  for (int i=0; i<blocks.length-5; i++) {
+  for (int i=0; i<blocks.length-7; i++) {
      for (int j=0; j<blocks[0].length/2; j++) {
        int k = r.nextInt(colors.length);
        
@@ -128,13 +128,14 @@ void draw() {
     for (int col = 0; col < blocks[row].length; col++) {
       Block blockInQuestion = blocks[row][col];
       Block blockBelow = blocks[row-1][col];
-      if ((blockBelow == null) && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
+      if ((blockBelow == null) && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below (NOT NECESSARILY IMMEDIATELY BELOW), block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
         int endingRow = row-1;
-        while ((endingRow > 0) && (blocks[endingRow-1][col] != null)) { //while the block immediately beneath the block in question is void
+        blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
+        while ((endingRow > 0) && (blocks[endingRow-1][col] == null)) { //while the block immediately beneath the block in question is void
           endingRow--;
         }
-        print("\t"+endingRow);
+        //print("\t"+endingRow);
         blockInQuestion.setEndingRow(endingRow);
       }
     }
@@ -146,19 +147,23 @@ void draw() {
   for (Block[] row : blocks) {
     for (Block b : row) {
       if ((b != null) && (b.isFalling())) {
+         //print(b.isFalling());
          int endRow = b.getEndingRow();
          int endY = height-(40*(endRow+1));
          int currentY = b.getY();
-         if (currentY != endY) { //hasn't reached the endRow
-           b.setY(currentY+10);
+         if (currentY < endY) { //hasn't reached the endRow
+           b.setY(currentY+6); //the overshooting of pixels makes a really nice thudding effect when currentY hits endY
          }
          else { //hooray we finished falling
            b.setFalling(false);
+           //print(b.isFalling());
            int bCol = b.getX()/40;
-           int bRow = (b.getY()/40)-1;
+           int bRow = ((height-b.getTEMP())/40)-1;
            color bColor = b.getColor();
+           //print(bRow+" "+bCol);
+           print("   "+bRow+" "+bCol);
            blocks[bRow][bCol] = null; //removing block from old location
-           addBlock(bRow,bCol,bColor); //putting block in new location
+           addBlock(endRow,bCol,bColor); //putting block in new location
          }
       }
     }
@@ -207,30 +212,34 @@ void draw() {
         
         
         leftblock = blocks[movingrow][movingcol];
+        if ((leftblock != null) && leftblock.isFalling()) { //don't fall and move that's just wrong
+          leftblock = null;
+        }
+        
         rightblock = blocks[movingrow][movingcol+1];
+        if ((rightblock != null) && rightblock.isFalling()) {
+          rightblock = null;
+        }
         
-        if (!(((leftblock == null) && (rightblock == null)) && (leftblock.isFalling() || rightblock.isFalling()))) { //I really hope you don't want to switch two falling blocks
+        //leftblock.moving(true);
+        //rightblock.moving(true);
         
-          //leftblock.moving(true);
-          //rightblock.moving(true);
-        
-          if (leftblock != null) {
-            color leftcolor = leftblock.getColor();
-            blocks[movingrow][movingcol+1] = new Block(movingrow,movingcol+1,leftcolor);
+        if (leftblock != null) {
+          color leftcolor = leftblock.getColor();
+          blocks[movingrow][movingcol+1] = new Block(movingrow,movingcol+1,leftcolor);
           
-            if (rightblock == null) {
-              blocks[movingrow][movingcol] = null;
-            }          
-          }
+          if (rightblock == null) {
+            blocks[movingrow][movingcol] = null;
+          }          
+        }
         
-          if (rightblock != null) {
-            color rightcolor = rightblock.getColor();
-            blocks[movingrow][movingcol] = new Block(movingrow,movingcol,rightcolor);
+        if (rightblock != null) {
+          color rightcolor = rightblock.getColor();
+          blocks[movingrow][movingcol] = new Block(movingrow,movingcol,rightcolor);
           
-            if (leftblock == null) {
-              blocks[movingrow][movingcol+1] = null;
-            }   
-          }
+          if (leftblock == null) {
+            blocks[movingrow][movingcol+1] = null;
+          }   
           /* first we switch the blocks in the array, then we do the animation
           this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */ 
         }
@@ -258,10 +267,11 @@ void addBlock(int row, int col, color c) {
 void keyReleased() {
   moving = false;
 }
+
 //-------------------------------------------------------------------------------------------------
 
 class Block {
-  private int x,y,endingRow;
+  private int x,y,endingRow,temp;
   private color c;
   private boolean falling;
   
@@ -269,6 +279,7 @@ class Block {
     x = 40*col;
     y = height-(40*(row+1));
     this.c = c;
+    falling = false;
   }
   
   public color getColor() {return c;}
@@ -280,6 +291,9 @@ class Block {
 
   public void setY(int i) {y = i;}
   public int getY() {return y;}
+  
+  public void setTEMP(int i) {temp = i;}
+  public int getTEMP() {return temp;}
   
   public void setEndingRow(int r) {endingRow = r;}
   public int getEndingRow() {return endingRow;}
