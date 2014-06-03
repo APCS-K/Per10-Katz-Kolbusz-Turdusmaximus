@@ -151,8 +151,8 @@ void draw() {
          int endRow = b.getEndingRow();
          int endY = height-(40*(endRow+1));
          int currentY = b.getY();
-         if (currentY < endY) { //hasn't reached the endRow
-           b.setY(currentY+6); //the overshooting of pixels makes a really nice thudding effect when currentY hits endY
+         if (currentY < endY-8) { //hasn't reached the endRow (we need the endY-8 otherwise there would be a one frame delay between a finished fall and a switch)
+           b.setY(currentY+8); //ignore this comment \\ the overshooting of pixels makes a really nice thudding effect when currentY hits endY
          }
          else { //hooray we finished falling
            b.setFalling(false);
@@ -161,9 +161,14 @@ void draw() {
            int bRow = ((height-b.getTEMP())/40)-1;
            color bColor = b.getColor();
            //print(bRow+" "+bCol);
-           print("   "+bRow+" "+bCol);
-           blocks[bRow][bCol] = null; //removing block from old location
+           //print("   "+bRow+" "+bCol);
            addBlock(endRow,bCol,bColor); //putting block in new location
+           Block blockInOldLoc = blocks[bRow][bCol];
+           if (!blockInOldLoc.equalsBlock(b)) {
+             print(" the");
+             blocks[bRow][bCol] = null; //removing block from old location
+           }
+           //this method sucks hot damn
          }
       }
     }
@@ -271,7 +276,7 @@ void keyReleased() {
 //-------------------------------------------------------------------------------------------------
 
 class Block {
-  private int x,y,endingRow,temp;
+  private int x,y,endingRow,temp,fallingi;
   private color c;
   private boolean falling;
   
@@ -282,6 +287,12 @@ class Block {
     falling = false;
   }
   
+  public void fall() {
+    fallingi = fallingi + 8;
+  }
+  
+  public boolean equalsBlock(Block b) {
+    
   public color getColor() {return c;}
   
   public void setX(int i) {x = i;
