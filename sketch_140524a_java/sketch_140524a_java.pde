@@ -1,3 +1,16 @@
+/*
+blocks empty dy oldy newy  fallingi
+6 3 360    -160 200  480
+6 2 240    -80 160    320
+5 2 240    -80 160    320
+5 1     0 120    160
+  
+  -1            +80 -40         -160
+
+*/
+
+
+
 import java.util.*;
 
 Block[][] blocks;
@@ -24,7 +37,7 @@ color[] colors = {red,yellow,green,sky,blue,pink};
 
 Random r = new Random();
 
-void setup() { 
+void setup() {
   size(240,520);
   frameRate(30);
   
@@ -59,6 +72,9 @@ void setup() {
   }
 
   //addBlock(12,2,red);
+  blocks[6][4] = null;
+  //blocks[5][4] = null;
+  //blocks[3][4] = null;
 }
  
  
@@ -127,16 +143,26 @@ void draw() {
   for (int row = 1; row < blocks.length; row++) { //I really hope nothing in row 0 is falling
     for (int col = 0; col < blocks[row].length; col++) {
       Block blockInQuestion = blocks[row][col];
-      Block blockBelow = blocks[row-1][col];
-      if ((blockBelow == null) && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
+      //Block blockBelow = blocks[row-1][col];
+      int isEmptyBelow = isEmptyBelow(blockInQuestion);
+      if ((isEmptyBelow != -1) /*(blockBelow == null)*/ && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
-        int endingRow = row-1;
+        //int endingRow = row-1;
         blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
-        while ((endingRow > 0) && (blocks[endingRow-1][col] == null)) { //while the block immediately beneath the block in question is void
-          endingRow--;
-        }
+        //while ((endingRow > 0) && (blocks[endingRow-1][col] == null)) { //while the block immediately beneath the block in question is void
+          //endingRow--;
+        //}
         //print("\t"+endingRow);
-        blockInQuestion.setEndingRow(endingRow);
+        /*int endRow = isEmptyBelow;
+        for (int rowBetween = endRow; rowBetween < row; rowBetween++) {
+          if (blocks[rowBetween][col] != null) {
+            endRow++;
+          }
+        }
+        blockInQuestion.setEndingRow(endRow);
+        */
+        updateEndingRow(blockInQuestion);
+        //print(" choosing ");
       }
     }
   }
@@ -148,27 +174,37 @@ void draw() {
     for (Block b : row) {
       if ((b != null) && (b.isFalling())) {
          //print(b.isFalling());
+         //int endRow = b.getEndingRow();
+         //print(" "+endRow+" ");
+         //if (endRow != ((height-b.getY())/40)-1) {
+           updateEndingRow(b); //see comment on update function
+         //}
+         //print(" falling ");
          int endRow = b.getEndingRow();
          int endY = height-(40*(endRow+1));
          int currentY = b.getY();
-         if (currentY < endY-8) { //hasn't reached the endRow (we need the endY-8 otherwise there would be a one frame delay between a finished fall and a switch)
-           b.setY(currentY+8); //ignore this comment \\ the overshooting of pixels makes a really nice thudding effect when currentY hits endY
+         if (currentY < endY) { //hasn't reached the endRow
+           b.setY(currentY+2); //the overshooting of pixels makes a really nice thudding effect when currentY hits endY
+           b.fall();
          }
          else { //hooray we finished falling
            b.setFalling(false);
            //print(b.isFalling());
            int bCol = b.getX()/40;
            int bRow = ((height-b.getTEMP())/40)-1;
+           //print(bRow+"\t");
            color bColor = b.getColor();
            //print(bRow+" "+bCol);
-           //print("   "+bRow+" "+bCol);
+           //print(" "+bRow+" "+bCol);
+           Block mightBeOldBlock = blocks[bRow][bCol]; 
+           //print("THE"+bRow+" "+bCol+"TH"+b.getY()+"E"); //works correctly afaik
+             //print("the");
+           if (mightBeOldBlock != null && b.blockEquals(mightBeOldBlock)) {//removing block from old location
+             //print("the");
+             blocks[bRow][bCol] = null; //isOldBlock
+           }             
            addBlock(endRow,bCol,bColor); //putting block in new location
-           Block blockInOldLoc = blocks[bRow][bCol];
-           if (!blockInOldLoc.equalsBlock(b)) {
-             print(" the");
-             blocks[bRow][bCol] = null; //removing block from old location
-           }
-           //this method sucks hot damn
+           //print("YOU");
          }
       }
     }
@@ -184,10 +220,10 @@ void draw() {
     //println("\t"+(currentTime - timeOfLastMove));
     if (((currentTime - timeOfLastMove > Integer.MAX_VALUE/20) && (!moving)) || (key != lastMove)) {
       /*
-      basically doesn't allow a move in the same direction for a certain
-      length of time unless the cursor has already moved in a different direction
-      DON'T TWEAK THIS
-      */
+basically doesn't allow a move in the same direction for a certain
+length of time unless the cursor has already moved in a different direction
+DON'T TWEAK THIS
+*/
       moving = true;
       lastMove = key;
       
@@ -235,7 +271,7 @@ void draw() {
           
           if (rightblock == null) {
             blocks[movingrow][movingcol] = null;
-          }          
+          }
         }
         
         if (rightblock != null) {
@@ -244,9 +280,9 @@ void draw() {
           
           if (leftblock == null) {
             blocks[movingrow][movingcol+1] = null;
-          }   
+          }
           /* first we switch the blocks in the array, then we do the animation
-          this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */ 
+this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */
         }
       }
     }
@@ -257,6 +293,7 @@ void draw() {
   // ------------------------------------------------------------------------------MISC DRAW ITERATIONS
   
   cursor.display(); //cursor is drawn on top of the blocks
+  //println("\n");
 }
 
 
@@ -273,6 +310,40 @@ void keyReleased() {
   moving = false;
 }
 
+int isEmptyBelow(Block b) { //returns -1 if nothing empty below b, otherwise returns the lowest row of emptiness
+  if (b == null) {
+    return -1;
+  }
+  int col = b.getX()/40;
+  int row = ((height-b.getY())/40)-1;
+  for (int rowBelow = 0; rowBelow < row; rowBelow++) {
+    if (blocks[rowBelow][col] == null) {
+      return rowBelow;
+    }
+  }
+  return row;
+}
+
+void updateEndingRow(Block b) { //i.e. block is falling and another block gets switched under its fall
+  int row = ((height-b.getY())/40)-1;
+  int col = b.getX()/40;
+  int endRow = isEmptyBelow(b);
+  //print(" "+endRow);
+  for (int rowBetween = endRow; rowBetween < row; rowBetween++) {
+    //print(rowBetween+" "+row+" "+col+"\t");
+    if (blocks[rowBetween][col] != null) {
+      endRow++;
+    }
+  }
+  //println("");
+  //if(row < endRow) {//whoops you overshot it
+  //  b.setEndingRow(endRow+1);
+  //}
+  //else {
+    //print(endRow);
+    b.setEndingRow(endRow);
+ // }
+}
 //-------------------------------------------------------------------------------------------------
 
 class Block {
@@ -287,12 +358,24 @@ class Block {
     falling = false;
   }
   
-  public void fall() {
-    fallingi = fallingi + 8;
+  public boolean blockEquals(Block b) {
+    //this is used when a block has finished falling
+    //"is the block I am looking at this block before it fell"
+    int dy = fallingi/4;
+    int oldy = y-dy;
+    boolean xEqual = (b.getX() == x);
+    boolean yEqual = (b.getTEMP() == oldy);
+    boolean colEqual = (b.getColor() == c);
+    //print("       "+b.getTEMP()+" "+oldy+" "+fallingi+" "+dy+"\t");
+    
+    //print("\t"+xEqual + yEqual + colEqual);
+    return (xEqual && yEqual && colEqual);
   }
   
-  public boolean equalsBlock(Block b) {
-    
+  public void fall() {
+    fallingi = fallingi+8;
+  }
+  
   public color getColor() {return c;}
   
   public void setX(int i) {x = i;
@@ -350,7 +433,7 @@ class Cursor {
     if (leftcol < 4) {
       leftcol++;
     }
-  }  
+  }
   
   public void moveUp() {
     if (row < 12) {
