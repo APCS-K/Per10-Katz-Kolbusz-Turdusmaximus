@@ -78,7 +78,30 @@ void setup() {
 }
  
  
- 
+void deleteBlocks(){
+  for(int x = 0; x < 6; x++){
+    int num = 0;
+    color tempC = #FFFFFF;
+    for(int y = 0; y < 12; y++){
+      if(blocks[y][x] == null){
+        num = 0;
+        tempC = #FFFFFF;
+      }
+      else if(blocks[y][x].getColor() == tempC){
+        num++;
+        if(num >= 3){
+          blocks[y-2][x] = null;
+          blocks[y-1][x] = null;
+          blocks[y][x] = null;
+        }
+      }
+      else{
+        num = 1;
+        tempC = blocks[y][x].getColor();
+      }
+    }
+  }
+}
  
  
  
@@ -86,6 +109,7 @@ void setup() {
 void draw() {
   background(204);
   
+  deleteBlocks();
   
   // ------------------------------------------------------------------------------DISPLAYING BLOCKS IN THE ARRAY
   //int j = 0;
