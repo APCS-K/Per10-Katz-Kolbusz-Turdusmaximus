@@ -88,7 +88,7 @@ void deleteBlocks(){
         num = 0;
         tempC = #FFFFFF;
       }
-      else if(blocks[y][x].getColor() == tempC){
+      else if((blocks[y][x].getColor() == tempC) && (!blocks[y][x].isFalling())){
         num++;
         if(num >= 3){
           blocks[y-2][x].delete();
@@ -111,7 +111,7 @@ void deleteBlocks(){
         num = 0;
         tempC = #FFFFFF;
       }
-      else if(blocks[y][x].getColor() == tempC){
+      else if(blocks[y][x].getColor() == tempC && (!blocks[y][x].isFalling())){
         num++;
         if(num >= 3){
           blocks[y][x-2].delete();
@@ -140,7 +140,7 @@ void deleteBlocks(){
  
 void draw() {
   background(204);
-  
+    
   deleteBlocks();
   
   // ------------------------------------------------------------------------------DISPLAYING BLOCKS IN THE ARRAY
@@ -201,7 +201,7 @@ void draw() {
       Block blockInQuestion = blocks[row][col];
       //Block blockBelow = blocks[row-1][col];
       int isEmptyBelow = isEmptyBelow(blockInQuestion);
-      if ((isEmptyBelow != -1) /*(blockBelow == null)*/ && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
+      if ((isEmptyBelow != -1) && (isEmptyBelow != row) /*(blockBelow == null)*/ && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
         //int endingRow = row-1;
         blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
@@ -324,6 +324,10 @@ DON'T TWEAK THIS
         if (leftblock != null) {
           color leftcolor = leftblock.getColor();
           blocks[movingrow][movingcol+1] = new Block(movingrow,movingcol+1,leftcolor);
+          int isEmptyBelowRight = isEmptyBelow(blocks[movingrow][movingcol+1]);
+          if ((isEmptyBelowRight != -1) && (isEmptyBelowRight != movingrow)) {
+            blocks[movingrow][movingcol+1].setFalling(true);
+          }
           
           if (rightblock == null) {
             blocks[movingrow][movingcol] = null;
@@ -333,6 +337,10 @@ DON'T TWEAK THIS
         if (rightblock != null) {
           color rightcolor = rightblock.getColor();
           blocks[movingrow][movingcol] = new Block(movingrow,movingcol,rightcolor);
+          int isEmptyBelowLeft = isEmptyBelow(blocks[movingrow][movingcol]);
+          if ((isEmptyBelowLeft != -1) && (isEmptyBelowLeft != movingrow)) {
+            blocks[movingrow][movingcol].setFalling(true);
+          }
           
           if (leftblock == null) {
             blocks[movingrow][movingcol+1] = null;
@@ -347,6 +355,7 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
   
   
   // ------------------------------------------------------------------------------MISC DRAW ITERATIONS
+
   
   cursor.display(); //cursor is drawn on top of the blocks
   //println("\n");
