@@ -79,6 +79,7 @@ void setup() {
  
  
 void deleteBlocks(){
+  //Sets triplets and more in columns to be deleted
   for(int x = 0; x < 6; x++){
     int num = 0;
     color tempC = #FFFFFF;
@@ -90,14 +91,45 @@ void deleteBlocks(){
       else if(blocks[y][x].getColor() == tempC){
         num++;
         if(num >= 3){
-          blocks[y-2][x] = null;
-          blocks[y-1][x] = null;
-          blocks[y][x] = null;
+          blocks[y-2][x].delete();
+          blocks[y-1][x].delete();
+          blocks[y][x].delete();
         }
       }
       else{
         num = 1;
         tempC = blocks[y][x].getColor();
+      }
+    }
+  }
+  //Sets triplets and more in rows to be deleted
+  for(int y = 0; y < 12; y++){
+    int num = 0;
+    color tempC = #FFFFFF;
+    for(int x = 0; x < 6; x++){
+      if(blocks[y][x] == null){
+        num = 0;
+        tempC = #FFFFFF;
+      }
+      else if(blocks[y][x].getColor() == tempC){
+        num++;
+        if(num >= 3){
+          blocks[y][x-2].delete();
+          blocks[y][x-1].delete();
+          blocks[y][x].delete();
+        }
+      }
+      else{
+        num = 1;
+        tempC = blocks[y][x].getColor();
+      }
+    }
+  }
+  //Deletes blocks set to be deleted
+  for(int y = 0; y < 12; y++){
+    for(int x = 0; x < 6; x++){
+      if(blocks[y][x] != null && blocks[y][x].toBeDeleted()){
+        blocks[y][x] = null;
       }
     }
   }
@@ -373,13 +405,14 @@ void updateEndingRow(Block b) { //i.e. block is falling and another block gets s
 class Block {
   private int x,y,endingRow,temp,fallingi;
   private color c;
-  private boolean falling;
+  private boolean falling,delete;
   
   public Block(int row, int col, color c) {
     x = 40*col;
     y = height-(40*(row+1));
     this.c = c;
     falling = false;
+    delete = false;
   }
   
   public boolean blockEquals(Block b) {
@@ -418,6 +451,9 @@ class Block {
   
   public void setFalling(boolean b) {falling = b;}
   public boolean isFalling() {return falling;}
+  
+  public boolean toBeDeleted() {return delete;}
+  public void delete() {delete = true;}
   
   public void display() {
     fill(c);
