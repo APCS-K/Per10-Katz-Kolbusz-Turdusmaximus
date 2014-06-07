@@ -311,12 +311,29 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
     }
   }
   
-  
+  // ------------------------------------------------------------------------------BLOCK RISING
+
   if (blocksFalling <= 0) {
     //print(anyFalling+" ");
     rising++;
-    if (rising%2 == 0) {
+    if (rising%3 == 0) {
       pushUp++;
+      if (pushUp%40 == 0) {
+        print(pushUp+" ");
+        pushUp = 0;
+        for (int row = blocks.length-1; row >= 0; row--) {
+          for (int col = 0; col < 6; col++) {
+            Block b = blocks[row][col];
+            if ((b != null) && (!b.isFalling())) {
+              int bcol = b.getX()/40;
+              int brow = ((height-b.getY())/40)-1;
+              color bc = b.getColor();
+              blocks[row][col] = null;
+              addBlock(brow+1,bcol,bc);
+            }
+          }
+        }
+      }
     }
   }
   
