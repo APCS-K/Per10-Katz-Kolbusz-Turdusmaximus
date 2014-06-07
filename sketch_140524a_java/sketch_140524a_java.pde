@@ -27,7 +27,9 @@ int movingcol;
 Block leftblock;
 Block rightblock;
 
-Block test;
+int blocksFalling;
+int rising;
+int pushUp;
 
 color red = color(245,20,20);
 color yellow = color(245,245,20);
@@ -50,9 +52,10 @@ void setup() {
   movingi = 0;
   movingrow = -1;
   movingcol = -1;
+  
   leftblock = null;
   rightblock = null;
-  
+    
   cursor = new Cursor();
   blocks = new Block[13][6];//6 by 12 blocks (really 13)
   
@@ -144,6 +147,7 @@ void draw() {
       int isEmptyBelow = isEmptyBelow(blockInQuestion);
       if ((isEmptyBelow != -1) && (isEmptyBelow != row) /*(blockBelow == null)*/ && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
+        blocksFalling++;
         //int endingRow = row-1;
         blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
         //while ((endingRow > 0) && (blocks[endingRow-1][col] == null)) { //while the block immediately beneath the block in question is void
@@ -164,7 +168,7 @@ void draw() {
     }
   }
     
-  
+
   
   // ------------------------------------------------------------------------------HAVING BLOCKS FALL
   for (Block[] row : blocks) {
@@ -196,6 +200,7 @@ void draw() {
            b.fall();
          }
          else { //hooray we finished falling
+           blocksFalling--;
            b.setFalling(false);
            //print(b.isFalling());
 
@@ -303,6 +308,15 @@ DON'T TWEAK THIS
 this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */
         }
       }
+    }
+  }
+  
+  
+  if (blocksFalling <= 0) {
+    //print(anyFalling+" ");
+    rising++;
+    if (rising%2 == 0) {
+      pushUp++;
     }
   }
   
@@ -497,7 +511,7 @@ class Block {
   
   public void display() {
     fill(c);
-    rect(x,y,40,40,6);
+    rect(x,y-pushUp,40,40,6);
   }
   
 }
@@ -519,7 +533,7 @@ class Cursor {
     
     strokeWeight(6);
     fill(0,0,0,0); //empty rectangle
-    rect(x,y,80,40);
+    rect(x,y-pushUp,80,40);
     strokeWeight(1); //don't want the blocks to be as thick as the cursor
   }
   
