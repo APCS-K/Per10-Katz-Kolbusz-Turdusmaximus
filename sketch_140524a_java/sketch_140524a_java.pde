@@ -299,6 +299,7 @@ DON'T TWEAK THIS
         //leftblock.moving(true);
         //rightblock.moving(true);
         
+        /*
         if (leftblock != null) {
           color leftcolor = leftblock.getColor();
           blocks[movingrow][movingcol+1] = new Block(movingrow,movingcol+1,leftcolor);
@@ -308,7 +309,8 @@ DON'T TWEAK THIS
             //print("LEFT FALLING");
           }
           
-          if (rightblock == null) {
+          //if (rightblock == null) {
+          else {
             blocks[movingrow][movingcol] = null;
           }
         }
@@ -327,8 +329,39 @@ DON'T TWEAK THIS
             blocks[movingrow][movingcol+1] = null;
           }
           /* first we switch the blocks in the array, then we do the animation
-this is to prevent any POTENTIAL case where the user swaps a block while it is still moving */
+this is to prevent any POTENTIAL case where the user swaps a block while it is still moving 
         }
+        
+        */
+        
+        color leftcolor = 0;
+        color rightcolor = 0;
+        if (leftblock != null) {
+          leftcolor = leftblock.getColor();
+        }
+        if (rightblock != null) {
+          rightcolor = rightblock.getColor();
+        }
+        
+        blocks[movingrow][movingcol] = null;
+        blocks[movingrow][movingcol+1] = null;
+        
+        if (leftblock != null) {
+          addBlock(movingrow,movingcol+1,leftcolor);
+          int isEmptyBelowRight = isEmptyBelow(blocks[movingrow][movingcol+1]);
+          if ((isEmptyBelowRight != -1) && (isEmptyBelowRight != movingrow)) {
+            blocks[movingrow][movingcol+1].setFalling(true);
+          }
+        }
+        
+        if (rightblock != null) {
+          addBlock(movingrow,movingcol,rightcolor);
+          int isEmptyBelowLeft = isEmptyBelow(blocks[movingrow][movingcol]);
+          if ((isEmptyBelowLeft != -1) && (isEmptyBelowLeft != movingrow)) {
+            blocks[movingrow][movingcol].setFalling(true);
+          }
+        }
+        
       }
     }
   }
@@ -367,7 +400,13 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
             }
           }
         }
-        blocks[0] = newBottomRow;
+       /* blocks[0] = newBottomRow;
+        if (leftblock != null) {
+          int newswitchingrow = (height-leftblock.getY())/40;
+          int switchingcol = leftblock.getX()/40;
+          leftblock = blocks[newswitchingrow][switchingcol];
+          rightblock = blocks[newswitchingrow][switchingcol+1];
+        }*/
         //println("\n\n\n");
       }
     }
