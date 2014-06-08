@@ -59,10 +59,13 @@ void setup() {
   rightblock = null;
   
   nextNewRow = new RowQueue();
-  Block[] newBottomRow = createRandomRow();
+  nextNewRow.enqueue();
+  nextNewRow.enqueue();
+  /*Block[] newBottomRow = createRandomRow();
   Block[] newBottomRow2 = createRandomRow();
   nextNewRow.enqueue(newBottomRow);
-  nextNewRow.enqueue(newBottomRow2);
+  nextNewRow.enqueue(newBottomRow2);*/
+  print(nextNewRow);
   
   cursor = new Cursor();
   blocks = new Block[13][6];//6 by 12 blocks (really 13)
@@ -95,7 +98,8 @@ void setup() {
  
 void draw() {
   background(204);
-    
+  fill(0,0,0);
+  rect(0,height-pushUp,240,pushUp);
   deleteBlocks();
   
   // ------------------------------------------------------------------------------DISPLAYING BLOCKS IN THE ARRAY
@@ -327,12 +331,14 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
     if (rising%3 == 0) {
       pushUp++;
       if (pushUp%40 == 0) {
-        print(pushUp+" ");
+        //print(pushUp+" ");
         pushUp = 0;
         cursor.moveUp();
+        print(nextNewRow);
         Block[] newBottomRow = nextNewRow.dequeue();
-        Block[] newNext = createRandomRow();
-        nextNewRow.enqueue(newNext);
+        /*Block[] newNext = createRandomRow();
+        nextNewRow.enqueue(newNext);*/
+        nextNewRow.enqueue();
         for (int row = blocks.length-1; row >= 0; row--) {
           for (int col = 0; col < 6; col++) {
             Block b = blocks[row][col];
@@ -346,6 +352,7 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
           }
         }
         blocks[0] = newBottomRow;
+        //println("\n\n\n");
       }
     }
   }
@@ -364,7 +371,9 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
 // ------------------------------------------------------------------------------MISC FUNCTIONS
   
 void addBlock(int row, int col, color c) {
-  blocks[row][col] = new Block(row,col,c);
+  if (row < blocks.length) {
+    blocks[row][col] = new Block(row,col,c);
+  }
 }
 
 void keyReleased() {
@@ -412,6 +421,10 @@ void deleteBlocks(){
     int num = 0;
     color tempC = #FFFFFF;
     for(int y = 0; y < 12; y++){
+      if (pushUp == 0) {
+        //print(y+" "+x+" "+blocks[y].length+" ");
+        //print(blocks[y][x]+"\t");
+      }
       if(blocks[y][x] == null){
         num = 0;
         tempC = #FFFFFF;
@@ -463,14 +476,7 @@ void deleteBlocks(){
   }
 }
  
-Block[] createRandomRow() { //designed for the bottom, and only the bottom, row
- Block[] ret = new Block[6];
- for (int i = 0; i < 6; i++) {
-   ret[i] =  new Block(0,i,colors[r.nextInt(colors.length)]);
- }
- return ret;
-}
- 
+
  
 //-------------------------------------------------------------------------------------------------
 
@@ -611,19 +617,36 @@ class RowQueue {
   public Block[] dequeue() {
     Block[] temp = queue[i];
     queue[i] = null;
+    print(temp);
     return temp;
   }
   
-  public void enqueue(Block[] b) {
-    if (queue[i] == null) {
-      queue[i] = b;
+  public void enqueue() {
+    //print(queue[i]);
+    //if (queue[i] == null) {
+      //print("HELLO");
+      queue[i] = createRandomRow();
       if (i == 0) {
         i = 1;
       }
       else {
         i = 0;
-      }
+     // }
     }
   }
+  
+  public String toString() {
+    return "\t["+Arrays.toString(queue[0])+"]"+Arrays.toString(queue[1])+"]]\t";
+  }
+  
+  public Block[] createRandomRow() { //designed for the bottom, and only the bottom, row
+    Block[] ret = new Block[6];
+    for (int i = 0; i < 6; i++) {
+      ret[i] =  new Block(0,i,colors[r.nextInt(colors.length)]);
+    }
+    //print(Arrays.toString(ret));
+    return ret;
+  }
+ 
 }
   
