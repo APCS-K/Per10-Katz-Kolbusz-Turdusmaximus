@@ -29,7 +29,9 @@ Block rightblock;
 
 int blocksFalling;
 int rising;
+
 int pushUp;
+RowQueue nextNewRow;
 
 color red = color(245,20,20);
 color yellow = color(245,245,20);
@@ -55,7 +57,13 @@ void setup() {
   
   leftblock = null;
   rightblock = null;
-    
+  
+  nextNewRow = new RowQueue();
+  Block[] newBottomRow = createRandomRow();
+  Block[] newBottomRow2 = createRandomRow();
+  nextNewRow.enqueue(newBottomRow);
+  nextNewRow.enqueue(newBottomRow2);
+  
   cursor = new Cursor();
   blocks = new Block[13][6];//6 by 12 blocks (really 13)
   
@@ -321,6 +329,10 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
       if (pushUp%40 == 0) {
         print(pushUp+" ");
         pushUp = 0;
+        cursor.moveUp();
+        Block[] newBottomRow = nextNewRow.dequeue();
+        Block[] newNext = createRandomRow();
+        nextNewRow.enqueue(newNext);
         for (int row = blocks.length-1; row >= 0; row--) {
           for (int col = 0; col < 6; col++) {
             Block b = blocks[row][col];
@@ -333,6 +345,7 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
             }
           }
         }
+        blocks[0] = newBottomRow;
       }
     }
   }
@@ -450,7 +463,13 @@ void deleteBlocks(){
   }
 }
  
- 
+Block[] createRandomRow() { //designed for the bottom, and only the bottom, row
+ Block[] ret = new Block[6];
+ for (int i = 0; i < 6; i++) {
+   ret[i] =  new Block(0,i,colors[r.nextInt(colors.length)]);
+ }
+ return ret;
+}
  
  
 //-------------------------------------------------------------------------------------------------
@@ -579,3 +598,32 @@ class Cursor {
   }
   
 }
+
+
+class RowQueue {
+  Block[][] queue;
+  int i;
+  
+  public RowQueue() {
+    queue = new Block[2][1];
+  }
+  
+  public Block[] dequeue() {
+    Block[] temp = queue[i];
+    queue[i] = null;
+    return temp;
+  }
+  
+  public void enqueue(Block[] b) {
+    if (queue[i] == null) {
+      queue[i] = b;
+      if (i == 0) {
+        i = 1;
+      }
+      else {
+        i = 0;
+      }
+    }
+  }
+}
+  
