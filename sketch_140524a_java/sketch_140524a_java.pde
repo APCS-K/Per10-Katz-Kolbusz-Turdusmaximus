@@ -65,7 +65,7 @@ void setup() {
   Block[] newBottomRow2 = createRandomRow();
   nextNewRow.enqueue(newBottomRow);
   nextNewRow.enqueue(newBottomRow2);*/
-  print(nextNewRow);
+  //print(nextNewRow);
   
   cursor = new Cursor();
   blocks = new Block[13][6];//6 by 12 blocks (really 13)
@@ -111,10 +111,12 @@ void draw() {
       //print(" "+movingcol+" ");
       if ( (b != null) && !( (row == movingrow) && ( (col == movingcol) || (col == movingcol+1) ) ) ){ //block exists, and is not the block defined as being in the row where a move is taking place in the two columns beng moved (aka the blocks switched)
         //j++;
+        //print(b.isFalling()+" ");
         b.display();
       }
     }
   }
+  
   //print(" "+j);
   
   
@@ -159,7 +161,6 @@ void draw() {
       int isEmptyBelow = isEmptyBelow(blockInQuestion);
       if ((isEmptyBelow != -1) && (isEmptyBelow != row) /*(blockBelow == null)*/ && (blockInQuestion != null) && !blockInQuestion.isFalling()) {//empty space below, block exists and has not already been assigned true/end variables
         blockInQuestion.setFalling(true);
-        blocksFalling++;
         //int endingRow = row-1;
         blockInQuestion.setTEMP(blockInQuestion.getY()); //dummy variable to keep track of where the block started
         //while ((endingRow > 0) && (blocks[endingRow-1][col] == null)) { //while the block immediately beneath the block in question is void
@@ -235,6 +236,15 @@ void draw() {
   }
            
          
+  // ------------------------------------------------------------------------------FALLING PREVENTING RISING
+  for (int row = 0; row < blocks.length; row++) {
+    for (int col = 0; col < blocks[0].length; col++) {
+      Block b = blocks[row][col];
+      if ((b != null) && (b.isFalling())) {
+        blocksFalling++;
+      }
+    }
+  }
           
   
   // ------------------------------------------------------------------------------PRESSING KEYS
@@ -334,7 +344,7 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
         //print(pushUp+" ");
         pushUp = 0;
         cursor.moveUp();
-        print(nextNewRow);
+        //print(nextNewRow);
         Block[] newBottomRow = nextNewRow.dequeue();
         /*Block[] newNext = createRandomRow();
         nextNewRow.enqueue(newNext);*/
@@ -342,9 +352,15 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
         for (int row = blocks.length-1; row >= 0; row--) {
           for (int col = 0; col < 6; col++) {
             Block b = blocks[row][col];
-            if ((b != null) && (!b.isFalling())) {
+            if ((b != null)){ //&& (!b.isFalling())) {
               int bcol = b.getX()/40;
-              int brow = ((height-b.getY())/40)-1;
+              int brow;
+              if (b.isFalling()) {
+                brow = ((height-b.getTEMP())/40)-1;
+              }
+              else {
+                brow = ((height-b.getY())/40)-1;
+              }
               color bc = b.getColor();
               blocks[row][col] = null;
               addBlock(brow+1,bcol,bc);
@@ -359,7 +375,8 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
   
   // ------------------------------------------------------------------------------MISC DRAW ITERATIONS
 
-  
+  print(blocksFalling+"\t");
+  blocksFalling = 0;
   cursor.display(); //cursor is drawn on top of the blocks
   //println("\n");
 }
@@ -617,7 +634,7 @@ class RowQueue {
   public Block[] dequeue() {
     Block[] temp = queue[i];
     queue[i] = null;
-    print(temp);
+    ;//print(temp);
     return temp;
   }
   
