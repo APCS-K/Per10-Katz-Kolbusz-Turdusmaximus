@@ -44,7 +44,7 @@ color[] colors = {red,yellow,green,sky,blue,pink};
 Random r = new Random();
 
 void setup() {
-  size(240,520);
+  size(400,520);
   frameRate(30);
   
   timeOfLastMove = 4;
@@ -400,13 +400,13 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
             }
           }
         }
-       /* blocks[0] = newBottomRow;
+        blocks[0] = newBottomRow;
         if (leftblock != null) {
           int newswitchingrow = (height-leftblock.getY())/40;
           int switchingcol = leftblock.getX()/40;
           leftblock = blocks[newswitchingrow][switchingcol];
           rightblock = blocks[newswitchingrow][switchingcol+1];
-        }*/
+        }
         //println("\n\n\n");
       }
     }
