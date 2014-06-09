@@ -283,7 +283,7 @@ void draw() {
            //print(b.isFalling());
 
            //print(bRow+"\t");
-           print("TE"+b.getTEMP()+"MP");
+           //print("TE"+b.getTEMP()+"MP");
            bRow = ((height-b.getTEMP())/40)-1;
            bCol = b.getX()/40;
            color bColor = b.getColor();
@@ -484,9 +484,9 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
     if (endi < 8) {
       endi++;
     }
-    print(endi);
+    //print(endi);
     int alpha = (int)(Math.pow(2.0,(double)endi))-1;
-    print(" "+alpha+"   ");
+    //print(" "+alpha+"   ");
     fill(0,0,0,alpha);
     rect(0,0,width,height);
     if (endi == 8) {
