@@ -12,6 +12,7 @@ blocks empty dy oldy newy  fallingi
 
 
 import java.util.*;
+import java.math.*;
 
 Block[][] blocks;
 Cursor cursor;
@@ -33,6 +34,13 @@ int rising;
 int pushUp;
 RowQueue nextNewRow;
 
+int totaldeleted;
+int score;
+
+boolean gameOver;
+int endi;
+int time;
+
 color red = color(245,20,20);
 color yellow = color(245,245,20);
 color green = color(20,200,20);
@@ -41,6 +49,7 @@ color blue = color(40,40,255);
 color pink = color(245,10,245);
 color[] colors = {red,yellow,green,sky,blue,pink};
 
+PFont f = createFont("Arial",36,true);
 Random r = new Random();
 
 void setup() {
@@ -67,30 +76,36 @@ void setup() {
   nextNewRow.enqueue(newBottomRow2);*/
   //print(nextNewRow);
   
-  cursor = new Cursor();
-  blocks = new Block[13][6];//6 by 12 blocks (really 13)
+  gameOver = false;
+  time = 120*30;
   
-  // ------------------------------------------------------------------------------creating randomly colored blocks for testing purposes
+  cursor = new Cursor();
+  blocks = new Block[15][6];//6 by 12 blocks (really 13)
+  
+  // ------------------------------------------------------------------------------creating randomly colored blocks
   for (int i=0; i<blocks.length-7; i++) {
-     for (int j=0; j<blocks[0].length/2; j++) {
+     for (int j=0; j<blocks[0].length; j++) {
        int k = r.nextInt(colors.length);
        
        addBlock(i,j,colors[k]);
      }
   }
   
-  for (int i=0; i<blocks.length-1; i++) {
+ /* for (int i=0; i<blocks.length-1; i++) {
      for (int j=blocks[0].length/2; j<blocks[0].length; j++) {
        int k = r.nextInt(colors.length);
        
        addBlock(i,j,colors[k]);
      }
-  }
+  }*/
 
   //addBlock(12,2,red);
-  blocks[6][4] = null;
+  //blocks[6][4] = null;
   //blocks[5][4] = null;
   //blocks[3][4] = null;
+  deleteBlocks();
+  score = 0;
+  totaldeleted = 0;
 }
  
  
@@ -98,9 +113,37 @@ void setup() {
  
 void draw() {
   background(204);
+  fill(70,175,225);
+  rect(240,0,width-240,height);
   fill(0,0,0);
   rect(0,height-pushUp,240,pushUp);
+  textFont(f);
+  textAlign(CENTER);
+  text(""+score,(240+width)/2,height/4);
+  int timeleft = time/30;
+  int minutes = timeleft/60;
+  int seconds = timeleft-(60*minutes);
+  if (seconds < 10) {
+    text(minutes+":0"+seconds,(240+width)/2,3*height/4);
+  }
+  else {
+    text(minutes+":"+seconds,(240+width)/2,3*height/4);
+  }
+  time--;
+
+  
+  
+  // ------------------------------------------------------------------------------DELETING BLOCKS
   deleteBlocks();
+  //print(totaldeleted+" ");
+  if (totaldeleted >= 3) {
+    score = score+100*(totaldeleted-3)*(totaldeleted-3)+300+r.nextInt(100);
+  }
+  totaldeleted = 0;
+  
+  
+  
+  
   
   // ------------------------------------------------------------------------------DISPLAYING BLOCKS IN THE ARRAY
   //int j = 0;
@@ -119,7 +162,19 @@ void draw() {
   
   //print(" "+j);
   
+  // ------------------------------------------------------------------------------GAME OVER
+  for (int row = 0; row < blocks.length; row++) {
+    for (int col = 0; col < blocks[row].length; col++) {
+      Block b = blocks[row][col];
+      if ((b != null) && (b.getY() <= 0)) { //block hit top of screen
+        gameOver = true;
+      }
+    }
+  }
   
+  if (time <= 0) {
+    gameOver = true;
+  }
   // ------------------------------------------------------------------------------SWITCHING BLOCKS
   if (movingi > 0) { //moving animation
     //two blocks switching
@@ -181,7 +236,16 @@ void draw() {
     }
   }
     
-
+  // ------------------------------------------------------------------------------FALLING PREVENTING RISING
+  for (int row = 0; row < blocks.length; row++) {
+    for (int col = 0; col < blocks[0].length; col++) {
+      Block b = blocks[row][col];
+      if ((b != null) && (b.isFalling())) {
+        blocksFalling++;
+      }
+    }
+  }
+        
   
   // ------------------------------------------------------------------------------HAVING BLOCKS FALL
   for (Block[] row : blocks) {
@@ -195,7 +259,8 @@ void draw() {
          //}
          //print(" falling ");
          int endRow = b.getEndingRow();
-         int endY = height-(40*(endRow+1));
+         //print(endRow+" ");
+         int endY = height-(40*(endRow+1));//-pushUp;
          int currentY = b.getY();
          int bCol = b.getX()/40;
          int bRow = ((height-b.getTEMP())/40)-1;
@@ -218,16 +283,20 @@ void draw() {
            //print(b.isFalling());
 
            //print(bRow+"\t");
+           print("TE"+b.getTEMP()+"MP");
+           bRow = ((height-b.getTEMP())/40)-1;
+           bCol = b.getX()/40;
            color bColor = b.getColor();
            //print(bRow+" "+bCol);
            //print(" "+bRow+" "+bCol);
            Block mightBeOldBlock = blocks[bRow][bCol]; 
            //print("THE"+bRow+" "+bCol+"TH"+b.getY()+"E"); //works correctly afaik
              //print("the");
-           if (mightBeOldBlock != null && b.blockEquals(mightBeOldBlock)) {//removing block from old location
+          // if (mightBeOldBlock != null && b.blockEquals(mightBeOldBlock)) {//removing block from old location
              //print("the");
              blocks[bRow][bCol] = null; //isOldBlock
-           }             
+           //}
+           //print("BROW:"+bRow+" "+endRow+" "+bCol+" ");
            addBlock(endRow,bCol,bColor); //putting block in new location
            //print("YOU");
          }
@@ -236,16 +305,7 @@ void draw() {
   }
            
          
-  // ------------------------------------------------------------------------------FALLING PREVENTING RISING
-  for (int row = 0; row < blocks.length; row++) {
-    for (int col = 0; col < blocks[0].length; col++) {
-      Block b = blocks[row][col];
-      if ((b != null) && (b.isFalling())) {
-        blocksFalling++;
-      }
-    }
-  }
-          
+  
   
   // ------------------------------------------------------------------------------PRESSING KEYS
   if (keyPressed) {
@@ -371,7 +431,7 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
   if (blocksFalling <= 0) {
     //print(anyFalling+" ");
     rising++;
-    if (rising%3 == 0) {
+    if (rising%2 == 0) {
       pushUp++;
       if (pushUp%40 == 0) {
         //print(pushUp+" ");
@@ -413,11 +473,36 @@ this is to prevent any POTENTIAL case where the user swaps a block while it is s
   }
   
   // ------------------------------------------------------------------------------MISC DRAW ITERATIONS
-
-  print(blocksFalling+"\t");
+ 
+  //print(blocksFalling+"\t");
   blocksFalling = 0;
   cursor.display(); //cursor is drawn on top of the blocks
   //println("\n");
+  
+  // ------------------------------------------------------------------------------GAME OVER CONT.
+  if (gameOver) {
+    if (endi < 8) {
+      endi++;
+    }
+    print(endi);
+    int alpha = (int)(Math.pow(2.0,(double)endi))-1;
+    print(" "+alpha+"   ");
+    fill(0,0,0,alpha);
+    rect(0,0,width,height);
+    if (endi == 8) {
+      for (int row = 0; row < blocks.length; row++) {
+        for (int col = 0; col < blocks[row].length; col++) {
+          blocks[row][col] = null; //DELETE EVERYTHING
+        }
+      }
+      textAlign(CENTER);
+      fill(255,255,255);
+      text("GAME OVER",width/2,height/4);
+      text("FINAL SCORE: "+score,width/2,3*height/4);
+    }
+  }
+     
+  //
 }
 
 
@@ -526,6 +611,8 @@ void deleteBlocks(){
   for(int y = 0; y < 12; y++){
     for(int x = 0; x < 6; x++){
       if(blocks[y][x] != null && blocks[y][x].toBeDeleted()){
+        totaldeleted++;
+        //print(totaldeleted+" ");
         blocks[y][x] = null;
       }
     }
@@ -687,8 +774,8 @@ class RowQueue {
       }
       else {
         i = 0;
-     // }
-    }
+      }
+    //}
   }
   
   public String toString() {
